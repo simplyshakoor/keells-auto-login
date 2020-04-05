@@ -48,15 +48,6 @@ notice1, notice2,notice3='','',''
 
 
 url_read = 'https://int.keellssuper.net/'
-url="https://member.daraz.lk/user/login?spm=a2a0e.home.header.d5.675a4625BepTpy&redirect=https%3A%2F%2Fwww.daraz.lk%2F"
-usernameStr = 'simplyshakoor@gmail.com'
-passwordStr = 'Ieeee357'
-
-
-# In[49]:
-
-
-#r = requests.get('https://member.daraz.lk')
 
 
 # In[50]:
@@ -158,18 +149,6 @@ while True:
     time.sleep(wait)
 browser.current_url
 
-
-# In[56]:
-
-
-#browser = webdriver.Chrome()
-#browser.get(keells_url)
-#browser.current_url
-
-
-# ## Code processing ends here... Need a little bit more trial.
-
-# In[57]:
 
 
 username = browser.find_element_by_id('BodyContent_UserName')
