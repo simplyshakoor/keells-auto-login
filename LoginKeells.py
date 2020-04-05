@@ -13,18 +13,24 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 
 chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'
-keells_url = 'https://int.keellssuper.net/'
+
 usernameStr = ''
 passwordStr = ''
 
-WAIT_TIME_SECONDS = 180
-start_time=datetime.datetime(2020,4,2,6,0,0) #Only start time of 6am is important
+keells_url = 'https://int.keellssuper.net/'
+KEELLS_LOGIN_HEADER = 'https://int.keellssuper.net/login'
+KEELLS_LOGIN_SUCCESS_HEADER = 'Welcome to Keells Super-The First Online Supermarket in Sri Lanka'
+
+
+WAIT_TIME_SECONDS = 60
+start_time=datetime.datetime(2020,4,2,6,0,0)
 PREFERED_CITY= ('Kohuwala''Boralesgamuwa','Dehiwala','Nugegoda','Colombo')
 PREFERED_SUBURB= (('Kohuwala','Hathbodhiya','Dutugemunu'),
                    ('Rattanapitiya','Boralesgamuwa'),
                    ('Kalubowila','Nedimala','Karagampitiya'),
                    ('Delkanda','Nugegoda'),
                    ('Polhengoda','Havelock Town'))
+notice1, notice2,notice3='','',''
                    
 def keells_available(r):
     if 'Sorry.aspx' in r.text:
@@ -34,11 +40,13 @@ def keells_available(r):
         print('site available')
         return True
         
-def notify_sound(count):
-    duration = 1000  # milliseconds
-    freq = 440  # Hz
-    for i in range(count):
-        winsound.Beep(freq, duration)
+def keells_available(r):
+    if KEELLS_LOGIN_HEADER in r:
+        print('site available')
+        return True
+    else:
+        print('site busy:',datetime.datetime.now())
+        return False
         
 now=datetime.datetime.now()
 if now.hour<start_time.hour:
@@ -46,72 +54,71 @@ if now.hour<start_time.hour:
         print('too early: waiting for',time_to_start.seconds-10,'s')
         time.sleep(time_to_start.seconds-10)
         
+def select_suburb(suburb, city_index):
+    town=''
+
+    #Search for the availability of the preffered Surburb
+    for x in PREFERED_SUBURB[city_index]:
+        for option in suburb.find_elements_by_tag_name('option'):
+            if option.text==x:
+                town=option.text
+                Select(suburb).select_by_visible_text(town)
+                notice3='Selected Town : '+town
+                return True
+                break
+    return False
+
+def select_city(site):    
+    deliveryCity = site.find_element_by_id('BodyContent_ddlDeliveryCity')
+    city=''
+    notice2='No prefered cities'
+
+    #Search for the availability of the prefered city
+    for x in PREFERED_CITY:
+        for option in deliveryCity.find_elements_by_tag_name('option'):
+            if option.text==x:
+                city=x
+                notice2='Selected City :'+x
+                suburb = site.find_element_by_id('BodyContent_ddlSuburb')
+                Select(deliveryCity).select_by_visible_text(x)
+                if select_suburb(suburb,PREFERED_CITY.index(x)):
+                    return True
+                    break
+            #print(option.text)
+    
+    # If no preferrerd city and preferred suburb combination is found then select first option just to login
+    Select(deliveryCity).select_by_index(0)
+    suburb = site.find_element_by_id('BodyContent_ddlSuburb')
+    Select(suburb).select_by_index(0)   
+
 browser = webdriver.Chrome()
 while True:
-    keells = requests.get(keells_url)    
-    if keells_available(keells):
-        #webbrowser.get(chrome_path).open(keells_url)
+    browser.get(keells_url)
+    #keells = requests.get(keells_url)    
+    if keells_available(browser.current_url):
         notify_sound(1)
         print('site opened, immediately check:',datetime.datetime.now())
-        browser.get((keells_url))
+        select_city(browser)
         break
     wait=WAIT_TIME_SECONDS+random.randint(-WAIT_TIME_SECONDS/2, WAIT_TIME_SECONDS/2)
     time.sleep(wait)
-    
-#Select the prefered city
-DeliveryCity = browser.find_element_by_id('BodyContent_ddlDeliveryCity')
-city=''
-notice2='No prefered cities'
+browser.current_url
 
-#Search for the availability of the prefered city
-for x in PREFERED_CITY:
-    for option in DeliveryCity.find_elements_by_tag_name('option'):
-        if option.text==x:
-            city=option.text
-            notice2='Selected City :'+city
-            break
-        print(option.text)
-
-try:
-    Select(DeliveryCity).select_by_visible_text(city)
-except:
-    Select(DeliveryCity).select_by_index(0)
-    
-#Search for the availability of the preffered Surburb
-Suburb = browser.find_element_by_id('BodyContent_ddlSuburb')
-town=''
-
-try:
-
-    for x in PREFERED_SUBURB[PREFERED_CITY.index(city)]:
-        for option in el.find_elements_by_tag_name('option'):
-            if option.text==x:
-                town=option.text
-                notice3='Selected Town : '+town
-                break
-            print(option.text)
-    town
-except:
-    notice3='No preffered towns'
-#Select the preffered suburb
-try:
-    Select(Suburb).select_by_visible_text('Rattanapitiya')
-except:
-    Select(Suburb).select_by_index(0)
-
-# Login with username and password
 username = browser.find_element_by_id('BodyContent_UserName')
 username.send_keys(usernameStr)
 password = browser.find_element_by_id('BodyContent_LoginPassword')
 password.send_keys(passwordStr)
 signInButton = browser.find_element_by_id('BodyContent_BtnLogin')
+
 try:
     signInButton.click()
+    if browser.title == KEELLS_LOGIN_SUCCESS_HEADER:
+        notice1='Keells Logged in'
     notice1='Keells Logged in'
 except:
     notice1='Keells Loggin Failed'
     notify_sound(3)
-    
+
 # Generate windows notification
 toaster = ToastNotifier()
 toaster.show_toast(notice1,notice2+'\n'+notice3)
