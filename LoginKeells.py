@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[46]:
+
+
 import webbrowser
 import requests
 import time
@@ -12,10 +18,15 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support import expected_conditions as EC
 
+
+# In[47]:
+
+
 chrome_path = 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe %s'
 
-usernameStr = ''
-passwordStr = ''
+
+# In[60]:
+
 
 keells_url = 'https://int.keellssuper.net/'
 KEELLS_LOGIN_HEADER = 'https://int.keellssuper.net/login'
@@ -31,15 +42,26 @@ PREFERED_SUBURB= (('Kohuwala','Hathbodhiya','Dutugemunu'),
                    ('Delkanda','Nugegoda'),
                    ('Polhengoda','Havelock Town'))
 notice1, notice2,notice3='','',''
-                   
-def keells_available(r):
-    if 'Sorry.aspx' in r.text:
-        print('site busy:',datetime.datetime.now())
-        return False
-    else:
-        print('site available')
-        return True
-        
+
+
+# In[ ]:
+
+
+url_read = 'https://int.keellssuper.net/'
+url="https://member.daraz.lk/user/login?spm=a2a0e.home.header.d5.675a4625BepTpy&redirect=https%3A%2F%2Fwww.daraz.lk%2F"
+usernameStr = 'simplyshakoor@gmail.com'
+passwordStr = 'Ieeee357'
+
+
+# In[49]:
+
+
+#r = requests.get('https://member.daraz.lk')
+
+
+# In[50]:
+
+
 def keells_available(r):
     if KEELLS_LOGIN_HEADER in r:
         print('site available')
@@ -47,13 +69,12 @@ def keells_available(r):
     else:
         print('site busy:',datetime.datetime.now())
         return False
-        
-now=datetime.datetime.now()
-if now.hour<start_time.hour:
-        time_to_start=start_time-now
-        print('too early: waiting for',time_to_start.seconds-10,'s')
-        time.sleep(time_to_start.seconds-10)
-        
+    
+
+
+# In[51]:
+
+
 def select_suburb(suburb, city_index):
     town=''
 
@@ -67,6 +88,11 @@ def select_suburb(suburb, city_index):
                 return True
                 break
     return False
+#        
+
+
+# In[52]:
+
 
 def select_city(site):    
     deliveryCity = site.find_element_by_id('BodyContent_ddlDeliveryCity')
@@ -91,7 +117,35 @@ def select_city(site):
     suburb = site.find_element_by_id('BodyContent_ddlSuburb')
     Select(suburb).select_by_index(0)   
 
+    
+    #    
+
+
+# In[53]:
+
+
+def notify_sound(count):
+    duration = 1000  # milliseconds
+    freq = 440  # Hz
+    for i in range(count):
+        winsound.Beep(freq, duration)
+
+
+# In[54]:
+
+
+now=datetime.datetime.now()
+if now.hour<start_time.hour:
+        time_to_start=start_time-now
+        print('too early: waiting for',time_to_start.seconds-10,'s')
+        time.sleep(time_to_start.seconds-10)
+
+
+# In[55]:
+
+
 browser = webdriver.Chrome()
+
 while True:
     browser.get(keells_url)
     #keells = requests.get(keells_url)    
@@ -104,12 +158,25 @@ while True:
     time.sleep(wait)
 browser.current_url
 
+
+# In[56]:
+
+
+#browser = webdriver.Chrome()
+#browser.get(keells_url)
+#browser.current_url
+
+
+# ## Code processing ends here... Need a little bit more trial.
+
+# In[57]:
+
+
 username = browser.find_element_by_id('BodyContent_UserName')
 username.send_keys(usernameStr)
 password = browser.find_element_by_id('BodyContent_LoginPassword')
 password.send_keys(passwordStr)
 signInButton = browser.find_element_by_id('BodyContent_BtnLogin')
-
 try:
     signInButton.click()
     if browser.title == KEELLS_LOGIN_SUCCESS_HEADER:
@@ -119,6 +186,10 @@ except:
     notice1='Keells Loggin Failed'
     notify_sound(3)
 
-# Generate windows notification
+
+# In[61]:
+
+
 toaster = ToastNotifier()
 toaster.show_toast(notice1,notice2+'\n'+notice3)
+
